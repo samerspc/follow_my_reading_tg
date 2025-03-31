@@ -5,26 +5,14 @@ import ChunkHighlighter from './ChunkHighlighter';
 export default function AudioPlayer({ base64, chunks, text }) {
     const containerRef = useRef(null);
     const waveRef = useRef(null);
+
     const [isReady, setIsReady] = useState(false);
+    const [isInitialized, setIsInitialized] = useState(false);
     const [currentTime, setCurrentTime] = useState(0);
-    const [error, serError] = useState(null);
+    const [error, setError] = useState(null);
 
-    // Преобразование base64 → blob
-    const base64ToBlob = (b64) => {
-        const byteString = atob(b64);
-        const arrayBuffer = new ArrayBuffer(byteString.length);
-        const intArray = new Uint8Array(arrayBuffer);
-        for (let i = 0; i < byteString.length; i++) {
-            intArray[i] = byteString.charCodeAt(i);
-        }
-        return new Blob([intArray], { type: 'audio/mpeg' });
-    };
-
-    useEffect(() => {
-        if (!containerRef.current) return;
-
-        const blob = base64ToBlob(base64);
-        const url = URL.createObjectURL(blob);
+    const initWaveSurfer = () => {
+        if (!containerRef.current || isInitialized) return;
 
         const wave = WaveSurfer.create({
             container: containerRef.current,
@@ -34,26 +22,25 @@ export default function AudioPlayer({ base64, chunks, text }) {
         });
 
         waveRef.current = wave;
+        setIsInitialized(true);
 
-        wave.load(url);
+        const audioUrl = `data:audio/mpeg;base64,${base64}`;
+        wave.load(audioUrl);
 
         wave.on('error', (e) => {
-            serError(e);
-        });        
+            console.error('WaveSurfer error:', e);
+            setError(e.toString());
+        });
 
         wave.on('ready', () => {
+            console.log('WaveSurfer ready');
             setIsReady(true);
         });
 
         wave.on('audioprocess', () => {
             setCurrentTime(wave.getCurrentTime());
         });
-
-        return () => {
-            wave.destroy();
-            waveRef.current = null;
-        };
-    }, [base64]);
+    };
 
     const handlePlayPause = () => {
         if (waveRef.current && isReady) {
@@ -61,15 +48,33 @@ export default function AudioPlayer({ base64, chunks, text }) {
         }
     };
 
+    useEffect(() => {
+        return () => {
+            if (waveRef.current) {
+                waveRef.current.destroy();
+                waveRef.current = null;
+            }
+        };
+    }, []);
+
     return (
         <div style={{ marginBottom: '30px' }}>
             <div ref={containerRef} style={{ width: '100%', height: '100px' }} />
+
+            {!isInitialized && (
+                <button onClick={initWaveSurfer} style={{ marginTop: '20px' }}>
+                    🔄 Инициализировать аудиоплеер
+                </button>
+            )}
+
             <hr />
-            {error != null && <p style={{ color: 'red' }}>Ошибка: {error}</p>}
-            <hr />
+
+            {error && <p style={{ color: 'red' }}>Ошибка: {error}</p>}
+
             <button onClick={handlePlayPause} disabled={!isReady} style={{ marginTop: '20px' }}>
-                ▶️ {isReady ? 'Play/Pause' : 'Loading...'}
+                ▶️ {isReady ? 'Play/Pause' : 'Загрузка...'}
             </button>
+
             <hr />
             <p>🧠 Синхронизированный текст:</p>
             <ChunkHighlighter text={text} currentTime={currentTime} chunks={chunks} />
