@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import WaveSurfer from 'wavesurfer.js';
 import ChunkHighlighter from './ChunkHighlighter';
 
+const format = 'wav';
 export default function AudioPlayer({ base64, chunks, text }) {
     const containerRef = useRef(null);
     const waveRef = useRef(null);
@@ -24,8 +25,9 @@ export default function AudioPlayer({ base64, chunks, text }) {
         waveRef.current = wave;
         setIsInitialized(true);
 
-        const audioUrl = `data:audio/mpeg;base64,${base64}`;
+        const audioUrl = `data:audio/wav;base64,${base64}`;
         wave.load(audioUrl);
+        
 
         wave.on('error', (e) => {
             console.error('WaveSurfer error:', e);
@@ -63,7 +65,7 @@ export default function AudioPlayer({ base64, chunks, text }) {
 
             {!isInitialized && (
                 <button onClick={initWaveSurfer} style={{ marginTop: '20px' }}>
-                    🔄 Инициализировать аудиоплеер
+                    🔄 Инициализировать аудиоплеер | {format}
                 </button>
             )}
 
