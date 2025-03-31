@@ -2,7 +2,6 @@ import React, { useEffect, useRef, useState } from 'react';
 import WaveSurfer from 'wavesurfer.js';
 import ChunkHighlighter from './ChunkHighlighter';
 
-const format = 'ogg';
 export default function AudioPlayer({ base64, chunks, text }) {
     const containerRef = useRef(null);
     const waveRef = useRef(null);
@@ -11,6 +10,17 @@ export default function AudioPlayer({ base64, chunks, text }) {
     const [isInitialized, setIsInitialized] = useState(false);
     const [currentTime, setCurrentTime] = useState(0);
     const [error, setError] = useState(null);
+
+    // Конвертация base64 → Blob
+    const base64ToBlob = (b64) => {
+        const byteString = atob(b64);
+        const arrayBuffer = new ArrayBuffer(byteString.length);
+        const intArray = new Uint8Array(arrayBuffer);
+        for (let i = 0; i < byteString.length; i++) {
+            intArray[i] = byteString.charCodeAt(i);
+        }
+        return new Blob([intArray], { type: 'audio/ogg' });
+    };
 
     const initWaveSurfer = () => {
         if (!containerRef.current || isInitialized) return;
@@ -25,17 +35,22 @@ export default function AudioPlayer({ base64, chunks, text }) {
         waveRef.current = wave;
         setIsInitialized(true);
 
-        const audioUrl = `data:audio/ogg;base64,${base64}`;
-        wave.load(audioUrl);
-        
+        try {
+            const blob = base64ToBlob(base64);
+            const url = URL.createObjectURL(blob);
+            wave.load(url);
+        } catch (e) {
+            console.error('Ошибка при создании Blob:', e);
+            setError('Ошибка при декодировании аудио.');
+        }
 
         wave.on('error', (e) => {
             console.error('WaveSurfer error:', e);
-            setError(e.toString());
+            setError('Ошибка воспроизведения: ' + e.toString());
         });
 
         wave.on('ready', () => {
-            console.log('WaveSurfer ready');
+            console.log('WaveSurfer готов');
             setIsReady(true);
         });
 
@@ -65,7 +80,7 @@ export default function AudioPlayer({ base64, chunks, text }) {
 
             {!isInitialized && (
                 <button onClick={initWaveSurfer} style={{ marginTop: '20px' }}>
-                    🔄 Инициализировать аудиоплеер | {format}
+                    🔄 Инициализировать аудиоплеер (OGG)
                 </button>
             )}
 
