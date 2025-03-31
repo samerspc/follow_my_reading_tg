@@ -7,6 +7,7 @@ export default function AudioPlayer({ base64, chunks, text }) {
     const waveRef = useRef(null);
     const [isReady, setIsReady] = useState(false);
     const [currentTime, setCurrentTime] = useState(0);
+    const [error, serError] = useState(null);
 
     // Преобразование base64 → blob
     const base64ToBlob = (b64) => {
@@ -16,7 +17,7 @@ export default function AudioPlayer({ base64, chunks, text }) {
         for (let i = 0; i < byteString.length; i++) {
             intArray[i] = byteString.charCodeAt(i);
         }
-        return new Blob([intArray], { type: 'audio/ogg' });
+        return new Blob([intArray], { type: 'audio/mpeg' });
     };
 
     useEffect(() => {
@@ -35,6 +36,10 @@ export default function AudioPlayer({ base64, chunks, text }) {
         waveRef.current = wave;
 
         wave.load(url);
+
+        wave.on('error', (e) => {
+            serError(e);
+        });        
 
         wave.on('ready', () => {
             setIsReady(true);
@@ -59,6 +64,9 @@ export default function AudioPlayer({ base64, chunks, text }) {
     return (
         <div style={{ marginBottom: '30px' }}>
             <div ref={containerRef} style={{ width: '100%', height: '100px' }} />
+            <hr />
+            {error != null && <p style={{ color: 'red' }}>Ошибка: {error}</p>}
+            <hr />
             <button onClick={handlePlayPause} disabled={!isReady} style={{ marginTop: '20px' }}>
                 ▶️ {isReady ? 'Play/Pause' : 'Loading...'}
             </button>
