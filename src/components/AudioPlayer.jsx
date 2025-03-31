@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import WaveSurfer from 'wavesurfer.js';
 import ChunkHighlighter from './ChunkHighlighter';
 
-const format = 'wav';
+const format = 'ogg';
 export default function AudioPlayer({ base64, chunks, text }) {
     const containerRef = useRef(null);
     const waveRef = useRef(null);
@@ -25,7 +25,7 @@ export default function AudioPlayer({ base64, chunks, text }) {
         waveRef.current = wave;
         setIsInitialized(true);
 
-        const audioUrl = `data:audio/wav;base64,${base64}`;
+        const audioUrl = `data:audio/ogg;base64,${base64}`;
         wave.load(audioUrl);
         
 
