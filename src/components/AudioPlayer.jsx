@@ -28,7 +28,7 @@ export default function AudioPlayer({ base64, chunks, text }) {
         const wave = WaveSurfer.create({
             container: containerRef.current,
             waveColor: '#ccc',
-            progressColor: '#007aff',
+            progressColor: '#535bf2',
             height: 80,
         });
 
@@ -73,28 +73,29 @@ export default function AudioPlayer({ base64, chunks, text }) {
             }
         };
     }, []);
+    
 
     return (
         <div style={{ marginBottom: '30px' }}>
-            <div ref={containerRef} style={{ width: '100%', height: '100px' }} />
+            <div ref={containerRef} style={{width: '100%', height: '100px' }} />
 
             {!isInitialized && (
                 <button onClick={initWaveSurfer} style={{ marginTop: '20px' }}>
-                    🔄 Инициализировать аудиоплеер (OGG)
+                    Инициализировать аудиоплеер 
                 </button>
             )}
-
-            <hr />
 
             {error && <p style={{ color: 'red' }}>Ошибка: {error}</p>}
 
             <button onClick={handlePlayPause} disabled={!isReady} style={{ marginTop: '20px' }}>
-                ▶️ {isReady ? 'Play/Pause' : 'Загрузка...'}
+                {isReady ? 'Play' : 'Загрузка...'}
             </button>
 
-            <hr />
-            <p>🧠 Синхронизированный текст:</p>
+            
+            <p style={{marginTop: '35px'}}>Синхронизированный текст:</p>
             <ChunkHighlighter text={text} currentTime={currentTime} chunks={chunks} />
+
+            <hr />
         </div>
     );
 }

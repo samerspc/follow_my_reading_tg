@@ -1,7 +1,8 @@
 import { useState, useEffect, createContext } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { fetchPdfsList } from '../api';
 import Pagination from '../components/Pagination';
+import Loading from '../components/Loading';
+import Text from '../components/TextComp';
 
 export const paginationContext = createContext();
 
@@ -9,18 +10,6 @@ function Home() {
     const [pageNum, setPageNum] = useState(1);
     const [totalPages, setTotalPages] = useState(0);
     const [documents, setDocuments] = useState(null);
-    // const [loading, setLoading] = useState(true);
-    // const [error, setError] = useState(null);
-
-    // const handleSetPageNum = () => {
-    //     setPageNum(pageNum + 1);
-    // }
-
-    const navigate = useNavigate();
-
-    const handleOpenText = (id) => {
-        navigate(`/${id}`);
-    };
 
     useEffect(() => {
         const fetchData = async () => {
@@ -30,10 +19,9 @@ function Home() {
                 const { total, items } = data;
                 setTotalPages(Math.ceil(total / 5));
                 setDocuments(items);
-                // setLoading(false);
+
             } catch (err) {
                 console.error(err);
-                // setError(err);
             }
         };
         fetchData();
@@ -43,20 +31,19 @@ function Home() {
 
     return (
         <>
-            <h1>все пдфы</h1>
-
+            <h1>Все тексты</h1>
+            <hr />
             <br />
             <br />
-
-            {documents &&
+            <div className='textsD'>
+            {documents ?
                 documents.map((item) => (
-                    <div key={item.pdf_id}>
-                        <h2 onClick={() => handleOpenText(item.pdf_id)}>
-                            текст от пользователя {item.user_id}
-                        </h2>
-                        <p style={{ fontSize: '10px' }}>{item.text}</p>
-                    </div>
-                ))}
+                    <Text key={item.pdf_id} {...item} />
+                ))
+            :
+                <Loading />
+            }
+            </div>
 
             <paginationContext.Provider value={{ pageNum, setPageNum, totalPages }}>
                 <Pagination />
